@@ -1,0 +1,4 @@
+*.o
+*.d
+src/libdottedline.a
+*.sw?
