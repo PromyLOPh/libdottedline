@@ -21,10 +21,10 @@ CC   = $(TOOLCHAIN)-gcc
 AR   = $(TOOLCHAIN)-ar
 
 CFLAGS = -mthumb -mcpu=$(CPU) -mfpu=$(FPU) -mfloat-abi=$(FABI)
-CFLAGS+= -O0 -ffunction-sections -fdata-sections
+CFLAGS+= -O2 -ffunction-sections -fdata-sections
 CFLAGS+= -MD -std=c11 -Wall -Werror -fstrict-aliasing -fms-extensions
 CFLAGS+= -DXMC_ASSERT_ENABLE -DXMC_USER_ASSERT_FUNCTION
-CFLAGS+= -g3 -fmessage-length=0 -I$(CMSIS)/Include
+CFLAGS+= -fmessage-length=0 -I$(CMSIS)/Include
 CFLAGS+= -I$(CMSIS)/Infineon/Include
 CFLAGS+= -I$(CMSIS)/Infineon/$(UC)_series/Include
 CFLAGS+= -I$(XMCLIB)/XMClib/inc/

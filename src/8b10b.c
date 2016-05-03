@@ -54,21 +54,28 @@ static uint8_t decode3b4b (eightbtenbCtx * const ctx, const uint8_t input) {
  */
 void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
 		const size_t size) {
+	/* local versions, saves quite a few loads/stores in the loop */
+	uint8_t bitPos = ctx->bitPos;
+	uint8_t *dest = ctx->dataPos;
+
 	for (size_t i = 0; i < size; i++) {
-		const uint16_t encoded = (encode3b4b (ctx, (data[i] >> 5) & 0x7) << 6) |
-				encode5b6b (ctx, data[i] & 0x1f);
-		//printf ("%02x -> %04x bit %i byte %i\n", data[i], encoded, ctx->bitPos, ctx->bytePos);
-		ctx->data[ctx->bytePos] |= encoded << ctx->bitPos;
+		const uint8_t in = data[i];
+		const uint16_t encoded = (encode3b4b (ctx, (in >> 5) & 0x7) << 6) |
+				encode5b6b (ctx, in & 0x1f);
+		*dest |= encoded << bitPos;
 		/* with 10 bytes output the 8-bit boundary is always crossed exactly
 		 * once */
-		++ctx->bytePos;
-		ctx->data[ctx->bytePos] = encoded >> (8 - ctx->bitPos);
-		ctx->bitPos = (ctx->bitPos + 10) & 0x7;
+		++dest;
+		*dest = encoded >> (8 - bitPos);
+		bitPos = (bitPos + 10) & 0x7;
 		/* aligned with byte boundary */
-		if (ctx->bitPos == 0) {
-			++ctx->bytePos;
+		if (bitPos == 0) {
+			++dest;
 		}
 	}
+
+	ctx->bitPos = bitPos;
+	ctx->dataPos = dest;
 }
 
 /*	Decode size _bits_ of data
@@ -101,8 +108,8 @@ void eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
 		//assert (high != 0xff);
 		//assert (low != 0xff);
 
-		ctx->data[ctx->bytePos] = (high << 5) | low;
-		ctx->bytePos++;
+		*ctx->dataPos = (high << 5) | low;
+		ctx->dataPos++;
 		align >>= 10;
 		filled -= 10;
 	}
@@ -110,7 +117,7 @@ void eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
 
 void eightbtenbSetDest (eightbtenbCtx * const ctx, uint8_t * const dest) {
 	ctx->data = dest;
-	ctx->bytePos = 0;
+	ctx->dataPos = dest;
 	ctx->bitPos = 0;
 }
 
@@ -120,7 +127,7 @@ void eightbtenbInit (eightbtenbCtx * const ctx) {
 	ctx->rd = RD_NEG;
 	ctx->coding = FIVEBSIXB;
 	ctx->data = NULL;
-	ctx->bytePos = 0;
+	ctx->dataPos = NULL;
 	ctx->bitPos = 0;
 }
 

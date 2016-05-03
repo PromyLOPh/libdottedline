@@ -6,10 +6,9 @@ typedef struct {
 	/* current encoding */
 	enum {FIVEBSIXB = 0, THREEBFOURB = 1} __attribute__((packed)) coding;
 	/* encoded data pointer */
-	uint8_t *data;
+	uint8_t *data, *dataPos;
 	/* current position */
 	uint8_t bitPos;
-	size_t bytePos;
 } eightbtenbCtx;
 
 void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
