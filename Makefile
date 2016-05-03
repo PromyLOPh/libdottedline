@@ -42,14 +42,14 @@ INSTALLHEADERS=src/8b10b.h
 #### Rules ####
 all: $(ARCHIVE)
 
-%.o: %.c
+%.o: %.c src/8b10btables.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 src/libdottedline.a: $(OBJS)
 	$(AR) rcs $(ARCHIVE) $(OBJS)
 
-src/8b10btables.h: src/gen8b10btables.py
-	$< > $@
+src/8b10btables.h: eightbtenb/__init__.py
+	python3 $< > $@
 
 .PHONY: clean install
 
@@ -60,5 +60,5 @@ install: $(INSTALLHEADERS) $(ARCHIVE)
 	install -m 644 $(INSTALLHEADERS) $(INCDIR)
 
 clean:
-	rm -f $(OBJS) $(ARCHIVE)
+	rm -f $(OBJS) $(ARCHIVE) src/8b10btables.h
 
