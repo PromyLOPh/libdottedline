@@ -74,7 +74,15 @@ class CodeViolation (Exception):
 class Truncated (Exception):
     pass
 
+class UnusedBytes (Exception):
+    pass
+
 def decode (data, size):
+    """
+    Decode 8b10b encoded data with up to size bits.
+
+    :return: (number of consumed bits, decoded bytes)
+    """
     if not isinstance (data, bitarray):
         bits = bitarray (endian='little')
         bits.frombytes (data)
@@ -83,7 +91,7 @@ def decode (data, size):
     i = 0
     res = b''
     try:
-        while i < size:
+        while i+10 <= size:
             sixbits = bits[i:i+6].tobytes ()[0]
             low = fivebsixbdectbl[sixbits]
             i += 6
@@ -93,7 +101,7 @@ def decode (data, size):
             res += bytes ([high << 5 | low])
     except KeyError:
         raise CodeViolation (i)
-    return res
+    return i, res
 
 def genCTables ():
     # header
