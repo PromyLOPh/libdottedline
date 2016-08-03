@@ -89,7 +89,8 @@ def decode (data, size):
     if len (bits) < size:
         raise Truncated ('data is smaller than expected')
     i = 0
-    res = b''
+    res = []
+    append = res.append
     try:
         while i+10 <= size:
             sixbits = bits[i:i+6].tobytes ()[0]
@@ -98,10 +99,10 @@ def decode (data, size):
             fourbits = bits[i:i+4].tobytes ()[0]
             high = threebfourbdectbl[fourbits]
             i += 4
-            res += bytes ([high << 5 | low])
+            append (high << 5 | low)
     except KeyError:
         raise CodeViolation (i)
-    return i, res
+    return i, bytes (res)
 
 def genCTables ():
     # header
