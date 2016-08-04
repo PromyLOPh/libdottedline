@@ -81,7 +81,7 @@ void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
 /*	Decode size _bits_ of data
  *	TODO: error detection
  */
-void eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
+bool eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
 		const size_t size) {
 	/* make sure decoded data is always full 8 bit words */
 	assert (size % 10 == 0);
@@ -107,12 +107,17 @@ void eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
 		//printf ("%i/%i decoded to %02x\n", align & 0x3f, (align >> 6) & 0xf, high << 5 | low);
 		//assert (high != 0xff);
 		//assert (low != 0xff);
+		if (high == 0xff || low == 0xff) {
+			return false;
+		}
 
 		*ctx->dataPos = (high << 5) | low;
 		ctx->dataPos++;
 		align >>= 10;
 		filled -= 10;
 	}
+
+	return true;
 }
 
 void eightbtenbSetDest (eightbtenbCtx * const ctx, uint8_t * const dest) {
