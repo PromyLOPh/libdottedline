@@ -6,8 +6,6 @@ static PyObject *truncated, *codeviolation;
 static PyObject *moduleDecode (PyObject *self, PyObject *args) {
 	/* decodeable length in bits */
 	Py_ssize_t len;
-	/* decoded data */
-	char *decoded = NULL;
     Py_buffer data;
 	eightbtenbCtx decoder;
 	eightbtenbInit (&decoder);
@@ -16,12 +14,14 @@ static PyObject *moduleDecode (PyObject *self, PyObject *args) {
         return NULL;
 	}
 	assert (PyBuffer_IsContiguous (&data, 'C'));
+
 	if (data.len < len/8) {
 		/* truncated */
 		PyErr_SetString (truncated, "Byte string too small");
 		return NULL;
 	}
-	decoded = malloc (len/10);
+
+	char * const decoded = calloc (len/10, sizeof (*decoded));
 	eightbtenbSetDest (&decoder, decoded);
 	if (!eightbtenbDecode (&decoder, data.buf, len)) {
 		/* codeviolation */
@@ -37,8 +37,37 @@ static PyObject *moduleDecode (PyObject *self, PyObject *args) {
     return res;
 }
 
+static PyObject *moduleEncode (PyObject *self, PyObject *args) {
+	/* encoded data */
+    Py_buffer data;
+	eightbtenbCtx encoder;
+	eightbtenbInit (&encoder);
+
+    if (!PyArg_ParseTuple (args, "y*", &data)) {
+        return NULL;
+	}
+	assert (PyBuffer_IsContiguous (&data, 'C'));
+
+	/* XXX: makes implementation easier */
+	assert (data.len*10%8 == 0);
+	const Py_ssize_t encodedLen = data.len*10/8;
+
+	/* string must be zeroed */
+	char * const encoded = calloc (encodedLen, sizeof (*encoded));
+	eightbtenbSetDest (&encoder, encoded);
+	eightbtenbEncode (&encoder, data.buf, data.len);
+	PyObject * const res = PyBytes_FromStringAndSize (encoded, encodedLen);
+	/* res is a copy of decoded now */
+	free (encoded);
+
+	PyBuffer_Release (&data);
+
+    return res;
+}
+
 static PyMethodDef methods[] = {
     {"decode",  moduleDecode, METH_VARARGS, "Decode 8b10b encoded bytes."},
+    {"encode",  moduleEncode, METH_VARARGS, "Encode bytes with 8b10b."},
     {NULL, NULL, 0, NULL},
 };
 
@@ -51,14 +80,14 @@ static struct PyModuleDef module = {
    methods,
 };
 
-PyMODINIT_FUNC PyInit_ceightbtenb(void)
-{
+PyMODINIT_FUNC PyInit_ceightbtenb () {
 	PyObject *m;
 
     if ((m = PyModule_Create (&module)) == NULL) {
 		return m;
 	}
 
+	/* add decoder exceptions */
 	truncated = PyErr_NewException("ceightbtenb.Truncated", NULL, NULL);
     Py_INCREF(truncated);
     PyModule_AddObject (m, "Truncated", truncated);
