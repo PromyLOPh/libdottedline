@@ -79,7 +79,6 @@ void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
 }
 
 /*	Decode size _bits_ of data
- *	TODO: error detection
  */
 bool eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
 		const size_t size) {
@@ -120,6 +119,10 @@ bool eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
 	return true;
 }
 
+/*	Set destination buffer
+ *
+ *	Important note: data *must* be zeroed before encoding/decoding!
+ */
 void eightbtenbSetDest (eightbtenbCtx * const ctx, uint8_t * const dest) {
 	ctx->data = dest;
 	ctx->dataPos = dest;
