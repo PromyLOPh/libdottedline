@@ -194,6 +194,16 @@ START_TEST (testEncoder) {
 	}
 } END_TEST
 
+/* see testDecoder2
+ */
+START_TEST (testEncoder2) {
+	/* encoded as D31.7+, D0.0+, D10.5-, D21.2+ */
+	const uint8_t expect[] = {0xca, 0x19, 0xad, 0x56, 0xa5},
+			data[] = {0xff, 0x00, 0xaa, 0x55};
+	eightbtenbEncode (&encoder, data, 4);
+	fail_unless (memcmp (encoded, expect, sizeof (expect)) == 0);
+} END_TEST
+
 START_TEST (test5b6bDecoder) {
 	fail_unless (decode5b6b (&decoder, 0x06) == 0x0);
 	fail_unless (decode5b6b (&decoder, 0x39) == 0x0);
@@ -269,6 +279,7 @@ Suite *test() {
 	tcase_add_test (tc_core, testDecoder);
 	tcase_add_test (tc_core, testDecoder2);
 	tcase_add_test (tc_core, testEncoder);
+	tcase_add_test (tc_core, testEncoder2);
 	tcase_add_test (tc_core, testEncodeDecode);
 	suite_add_tcase (s, tc_core);
 
