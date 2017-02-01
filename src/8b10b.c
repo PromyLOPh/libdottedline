@@ -58,6 +58,10 @@ void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
 	uint8_t bitPos = ctx->bitPos;
 	uint8_t *dest = ctx->dataPos;
 
+	/* since we’re ORing data below, make sure dest is set to zero before */
+	if (bitPos == 0) {
+		*dest = 0;
+	}
 	for (size_t i = 0; i < size; i++) {
 		const uint8_t in = data[i];
 		const uint16_t encoded = (encode3b4b (ctx, (in >> 5) & 0x7) << 6) |
@@ -71,6 +75,7 @@ void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
 		/* aligned with byte boundary */
 		if (bitPos == 0) {
 			++dest;
+			*dest = 0;
 		}
 	}
 
@@ -141,7 +146,6 @@ void eightbtenbInit (eightbtenbCtx * const ctx) {
 
 #ifdef _TEST
 /* tests */
-#define _BSD_SOURCE
 #include <check.h>
 #include <stdlib.h>
 
@@ -150,8 +154,6 @@ uint8_t encoded[64];
 uint8_t decoded[64];
 
 static void testSetup () {
-	memset (encoded, 0, sizeof (encoded));
-	memset (decoded, 0, sizeof (decoded));
 	eightbtenbInit (&encoder);
 	eightbtenbSetDest (&encoder, encoded);
 	eightbtenbInit (&decoder);
@@ -189,7 +191,7 @@ START_TEST (testEncoder) {
 		eightbtenbEncode (&encoder, data, 1);
 		fail_unless (memcmp (encoded, expect, sizeof (expect)) == 0);
 	}
-	/* same again */
+	/* same again, appended */
 	{
 		const uint8_t data[] = {0x4a}, expect[] = {0xaa, 0xaa, 0xa};
 		eightbtenbEncode (&encoder, data, 1);
@@ -241,29 +243,11 @@ START_TEST (testEncodeDecode) {
 		testSetup ();
 
 		const size_t size = (random () % max) + 1;
-#if 0
-		printf ("%i bytes\nraw\n", size);
 		for (size_t i = 0; i < size; i++) {
 			data[i] = random ();
-			printf ("0x%02x ", data[i]);
 		}
-		puts ("");
-#endif
 		eightbtenbEncode (&encoder, data, size);
-#if 0
-		puts ("encoded");
-		for (size_t i = 0; i < size*10/8; i++) {
-			printf ("0x%02x ", encoded[i]);
-		}
-		puts ("");
-#endif
 		eightbtenbDecode (&decoder, encoded, size*10);
-#if 0
-		for (size_t i = 0; i < size; i++) {
-			printf ("0x%02x ", decoded[i]);
-		}
-		puts ("");
-#endif
 		fail_unless (memcmp (decoded, data, size) == 0);
 	}
 	free (data);
