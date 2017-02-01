@@ -1,5 +1,5 @@
 *.o
 *.d
-src/libdottedline.a
 src/8b10btables.h
 *.sw?
+__pycache__
