@@ -18,6 +18,7 @@ static PyObject *moduleDecode (PyObject *self, PyObject *args) {
 	if (data.len < len/8) {
 		/* truncated */
 		PyErr_SetString (truncated, "Byte string too small");
+		PyBuffer_Release (&data);
 		return NULL;
 	}
 
@@ -26,12 +27,14 @@ static PyObject *moduleDecode (PyObject *self, PyObject *args) {
 	if (!eightbtenbDecode (&decoder, data.buf, len)) {
 		/* codeviolation */
 		PyErr_SetString (codeviolation, "Invalid encoded input");
+		free (decoded);
+		PyBuffer_Release (&data);
 		return NULL;
 	}
 	PyObject * const res = PyBytes_FromStringAndSize (decoded, len/10);
+
 	/* res is a copy of decoded now */
 	free (decoded);
-
 	PyBuffer_Release (&data);
 
     return res;
@@ -57,9 +60,9 @@ static PyObject *moduleEncode (PyObject *self, PyObject *args) {
 	eightbtenbSetDest (&encoder, encoded);
 	eightbtenbEncode (&encoder, data.buf, data.len);
 	PyObject * const res = PyBytes_FromStringAndSize (encoded, encodedLen);
+
 	/* res is a copy of decoded now */
 	free (encoded);
-
 	PyBuffer_Release (&data);
 
     return res;
