@@ -1,4 +1,3 @@
-/*
 Copyright (c) 2015–2018 Lars-Dominik Braun <lars@6xq.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,29 +17,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
-
-#pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-typedef struct {
-	/* current running disparity */
-	enum {RD_NEG = 0, RD_POS = 1} __attribute__((packed)) rd;
-	/* current encoding */
-	enum {FIVEBSIXB = 0, THREEBFOURB = 1} __attribute__((packed)) coding;
-	/* encoded data pointer */
-	uint8_t *data, *dataPos;
-	/* current position */
-	uint8_t bitPos;
-} eightbtenbCtx;
-
-void eightbtenbEncode (eightbtenbCtx * const ctx, const uint8_t * const data,
-		const size_t size);
-bool eightbtenbDecode (eightbtenbCtx * const ctx, const uint8_t * const data,
-		const size_t size);
-void eightbtenbInit (eightbtenbCtx * const ctx);
-void eightbtenbSetDest (eightbtenbCtx * const ctx, uint8_t * const dest);
-
